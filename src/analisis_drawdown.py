@@ -86,7 +86,7 @@ print("=" * 96)
 cols_ep = ["pico", "valle", "fin", "profundidad_%", "recuperar_%",
            "dias_caida", "dias_recuperacion", "dias_bajo_agua", "recuperado"]
 for col in ret.columns:
-        ep = episodios_drawdown(ret[col]).head(3).copy()
+    ep = episodios_drawdown(ret[col]).head(3).copy()
     numericas = ep.select_dtypes("number").columns
     ep[numericas] = ep[numericas].round(1)
     print(f"\n--- {col} ---")
