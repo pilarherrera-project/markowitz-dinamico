@@ -23,6 +23,9 @@ COLORES = {
     "1/N": "#6b7280",
     "min_varianza": "#2563eb",
     "max_sharpe": "#d97706",
+    "momentum_3": "#059669",
+    "momentum_5": "#7c3aed",
+    "min_cvar": "#be123c",
 }
 
 retornos = pd.read_parquet(RESULTS / "retornos_estrategias.parquet")
