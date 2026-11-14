@@ -12,18 +12,18 @@ Mean-variance optimisation estimates expected returns (μ) and the covariance ma
 
 ## Four findings
 
-### 1. Max-Sharpe is a momentum strategy in disguise
+### 1. The max-Sharpe optimiser runs on a momentum signal
 
-μ estimated as the mean of the last 252 trading days **is**, almost literally, a 12-month momentum signal (Jegadeesh & Titman, 1993). The portfolio weights make this unmistakable: the max-Sharpe strategy held **0 % energy for thirteen consecutive years**, then 15.5 % in 2021, 34 % in 2022, and 0 % again by 2023 — in late, out late.
+μ estimated as the mean of the last 252 trading days **is**, almost literally, a 12-month trailing-return signal — the input behind classic momentum (Jegadeesh & Titman, 1993), though it uses the full 252-day window rather than the canonical t−12 to t−2 specification. The portfolio weights make this unmistakable: the max-Sharpe strategy held **0 % energy for thirteen consecutive years**, then 15.5 % in 2021, 34 % in 2022, and 0 % again by 2023 — in late, out late.
 
-A naive benchmark — rank by μ, hold the top 3, equal-weighted, no covariance matrix at all — **earns more** than the optimiser:
+A benchmark — rank by μ, hold the top 3, equal-weighted, no covariance matrix at all — **earns more in absolute return**, but with a **lower Sharpe ratio**:
 
-| | annual return | volatility | max drawdown | turnover | final wealth |
-|---|---|---|---|---|---|
-| `momentum_3` (no Σ) | **10.57 %** | 15.49 % | −21.24 % | 6.10 | **6.49** |
-| `max_sharpe` (μ + Σ) | 9.09 % | 10.76 % | −15.45 % | 5.13 | 5.05 |
+| | annual return | volatility | max drawdown | Sharpe | turnover | final wealth |
+|---|---|---|---|---|---|---|
+| `momentum_3` (no Σ) | **10.57 %** | 15.49 % | −21.24 % | 0.598 | 6.10 | **6.49** |
+| `max_sharpe` (μ + Σ) | 9.09 % | 10.76 % | −15.45 % | **0.677** | 5.13 | 5.05 |
 
-Since both use the same signal, the difference isolates what Σ contributes:
+Since both use the same expected-return signal, the comparison shows what adding Σ changes. It is not a clean isolation: `momentum_3` equal-weights three assets while `max_sharpe` optimises over fourteen with a 35 % cap, so part of the gap comes from broader diversification rather than from Σ itself.
 
 ```
 volatility      -30.5 %     improvement
@@ -78,7 +78,7 @@ momentum_3
   -> cost savings explain 10 %.
 ```
 
-85–90 % of the effect comes from **holding a different portfolio**, not from saving commissions. The threshold acts as a significance level: *ignore the change unless it is too large to be sampling noise*. It is a hypothesis test implemented as a trading rule.
+85–90 % of the effect comes from **holding a different portfolio**, not from saving transaction costs. The threshold works like a tolerance band: *ignore the change unless it is large enough to be worth acting on*. The analogy to a hypothesis test is useful but not literal — a significance level requires a reference distribution and a type I error rate, and the threshold has neither. It is a deterministic rule, and it does not formally separate estimation noise from genuine information. Establishing that separation is the natural next test; this decomposition does not do it.
 
 ![Threshold sweep](figuras/barrido_deriva.png)
 
@@ -182,7 +182,7 @@ Stated here rather than buried, because a backtest that reports only its best nu
 
 - **One sample path.** 18.6 years, one market, one realisation. Every Sharpe difference reported above has a Memmel-corrected t-statistic between 0.4 and 1.3. **None is statistically significant.** What survives: turnover reductions (deterministic), volatility differences (estimated from 4,687 observations), and the direction of the sign reversal in finding 2.
 - **Overfitting, measured.** Choosing the drift threshold in-sample overstated the gain for `min_varianza` by **43 %** relative to walk-forward selection (0.702 vs 0.490 Sharpe). The in-sample benchmark is itself a partial cheat, since it selects over a window larger than the evaluation period — so 43 % is a conservative figure.
-- **Universe selection.** The 14 tickers were chosen in 2026 among ETFs that exist and survived. The strategy results are out-of-sample; the universe is not.
+- **Universe selection.** The 14 tickers were chosen in 2026 among ETFs that exist and survived. The strategy results are out-of-sample; the universe is not. This inflates the return level of every strategy, benchmarks included, and distorts the comparisons less, since all six trade the same survivor universe.
 - **Flat risk-free rate.** rf = 2 % throughout, while actual short rates went 5 % → 0 % → 5 %. This shifts the level of every Sharpe but not the ranking.
 - **Cost model.** 5 bps linear in turnover. No bid-ask spread modelling, no market impact, no whole-share lots, **no taxes** — which in a real account would dominate everything measured here.
 - **Momentum specification.** The signal uses the full 252-day window. The canonical specification skips the most recent month (t−12 to t−2) to avoid short-term reversal.
